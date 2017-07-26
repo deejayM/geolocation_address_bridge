@@ -1,0 +1,8 @@
+name: Address to Geolocation
+type: module
+description: Choose a form and the fields to write to. This will return a Lon Lat and write them to field in the form you request.
+core: 8.x
+package: Flowmoco
+dependencies:
+  - geolocation
+  - address

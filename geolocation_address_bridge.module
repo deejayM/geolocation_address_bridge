@@ -1,0 +1,91 @@
+<?php
+
+/**
+ * @file
+ * Contains geolocation_address_bridge.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\geolocation_address_bridge\Controller\LatLong;
+
+/**
+ * Implements hook_help().
+ */
+function geolocation_address_bridge_help($route_name, RouteMatchInterface $route_match)
+{
+    switch ($route_name) {
+        // Main module help for the geolocation_address_bridge module.
+        case 'help.page.geolocation_address_bridge':
+            $output = '';
+            $output .= '<h3>' . t('About') . '</h3>';
+            $output .= '<p>' . t('This module enables automatic Lon and Lat calculation from Google Maps API. On creation and also if you select to on editing.  Here is the configuration you\'ll need to set up. ') . '</p>';
+            $output .= '<ul><li> ' . t('1. Add an Address Field to your Entity ') . '</li>';
+            $output .= '<li> ' . t('2. Add an Geolocation Field to your Entity ') . '</li>';
+            $output .= '<li> ' . t('3. Add Field for Auto Geolocation .  The Machine name will need to be field_geolocation_auto_add. ') . '</li>';
+            $output .= '<li> ' . t('4. Go to Configuration in Administration and go to \'Geolocation Address Bridge\' ') . '</li>';
+            $output .= '<li> ' . t('5. Input the information here from the fields you\'ve set up in the previous stages.  ') . '</li>';
+            $output .= '<li> ' . t('6. Then on the tabs , click on either \‘Manage form display\’
+On the dropdown list next to \‘Geolocation\’ - choose \‘Geolocation Google Maps API -   ') . '</li></ul>';
+            $output .= '<h3>' . t('Use') . '</h3>';
+            $output .= '<p>' . t('To move a Marker point use the Google locate icon.  <br>Click on the current marker.   <br>And then Click on where you want to move it to.  <br> SAVE your entity. ') . '</p>';
+
+            return $output;
+
+        default:
+    }
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+//
+
+
+function geolocation_address_bridge_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id)
+{
+
+    // get the form id for the Add and Edit versions of the form.
+    $gab_form_id = \Drupal::config('geolocation_address_bridge.adminsettings')->get('gab_form_id') . '_form';
+    $gab_edit_form_id = \Drupal::config('geolocation_address_bridge.adminsettings')->get('gab_form_id') . '_edit_form';
+    // edit form version replace _form at the end for _edit_form
+    if ($form_id == $gab_form_id ) {
+        // making geolocation hidden on first pass.
+        $form['field_business_geolocation']['#type'] = 'hidden';
+        $form['field_geolocation_auto_add']['#type'] = 'hidden';
+    }
+    if ($form_id == $gab_form_id || $form_id == $gab_edit_form_id) {
+        $form['#validate'][] = 'geolocation_address_bridge_validate';
+    }
+
+}
+
+
+/*
+ * Deals with the submission for the form
+ */
+
+function geolocation_address_bridge_validate(&$form, \Drupal\Core\Form\FormStateInterface $form_state)
+{
+
+        $get_values = $form_state->getValues();
+        $address_machine_name = \Drupal::config('geolocation_address_bridge.adminsettings')->get('gab_address_field_machine_name');
+
+
+        if ($get_values[$address_machine_name][0]['address']['address_line1'] != NULL  && $get_values['field_business_geolocation'][0]['lat'] == "" || $get_values['field_geolocation_auto_add']['value'] == 1 ) {
+
+            $business_name = ( $get_values['title'][0] ) ? $get_values['title'][0] : '';
+            $lat_long = new LatLong($business_name, $get_values[$address_machine_name][0]['address']);
+
+            $geolocation_machine_name = \Drupal::config('geolocation_address_bridge.adminsettings')->get('gab_geolocation_field_machine_name');
+
+            $form_state->setValue(array($geolocation_machine_name, 0, 'lat'), $lat_long->lat);
+            $form_state->setValue(array($geolocation_machine_name, 0, 'lng'), $lat_long->lon);
+
+            $get_values['field_geolocation_auto_add']['value'] = 0;
+
+            return $form_state;
+        }
+
+}

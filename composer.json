@@ -1,0 +1,14 @@
+{
+  "name": "drupal/geolocation_address_bridge",
+  "type": "drupal-module",
+  "description": "Choose a form and the fields to write to. This will return a Lon Lat and write them to field in the form you request.",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "https://www.drupal.org/project/geolocation_address_bridge",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "https://www.drupal.org/project/issues/geolocation_address_bridge",
+    "source": "http://cgit.drupalcode.org/geolocation_address_bridge"
+  },
+  "require": { }
+}
